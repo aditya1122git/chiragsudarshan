@@ -65,10 +65,10 @@ async def test_high_confidence_hf_negative_always_uses_gemini_final_label(monkey
 
 
 @pytest.mark.parametrize('title', [
-    'अपराध पर दुख जताने के बजाय मजाक? विपक्ष के बयान पर भड़के सम्राट चौधरी! #BiharBJP',
-    'जमुई कांड पर विपक्ष के बयान पर बरसे सम्राट चौधरी! #JamuiIncident',
-    'राजधानी पटना में दिनदहाड़े गोलियां, डीजीपी तक नहीं! #BiharGovernment #PatnaFiring',
-    'बिहार में 50 लाख बाढ़ पीड़ित #BiharBJP #BiharFlood',
+    'अपराध पर दुख जताने के बजाय मजाक? विपक्ष के बयान पर भड़के चिराग पासवान! #LJPRV',
+    'जमुई कांड पर विपक्ष के बयान पर बरसे चिराग पासवान! #JamuiIncident',
+    'राजधानी पटना में दिनदहाड़े गोलियां, डीजीपी तक नहीं! #ChiragPaswan #PatnaFiring',
+    'बिहार में 50 लाख बाढ़ पीड़ित #LJPRV #BiharFlood',
 ])
 def test_negative_event_with_campaign_hashtag_routes_to_target_verifier(title):
     result = apply_target_context(
@@ -82,7 +82,7 @@ def test_negative_event_with_campaign_hashtag_routes_to_target_verifier(title):
 
 def test_direct_target_criticism_can_stay_high_confidence_hf():
     result = apply_target_context(
-        'बिहार सरकार ने जनता को निराश किया',
+        'लोजपा (रामविलास) ने जनता को निराश किया',
         Result(sentiment='negative', confidence=.94, reason='Overall negative'), .80,
     )
     assert result.confidence == .94
@@ -90,29 +90,29 @@ def test_direct_target_criticism_can_stay_high_confidence_hf():
 
 def test_target_condolence_is_positive_despite_negative_event_words():
     result = apply_target_context(
-        'अभिनेता श्री नाना पाटेकर जी के निधन पर सीएम श्री सम्राट चौधरी जी ने जताया दुख। '
-        '#samratchoudhary #nanapatekar',
+        'अभिनेता श्री नाना पाटेकर जी के निधन पर श्री चिराग पासवान जी ने जताया दुख। '
+        '#chiragpaswan #nanapatekar',
         Result(sentiment='negative', confidence=.8569, reason='Overall negative'), .80,
     )
     assert result.sentiment == 'positive'
     assert result.confidence == .90
-    assert result.targets == ['samrat_choudhary']
+    assert result.targets == ['chirag_paswan']
     assert result.hf_confidence is None
 
 
 def test_mocked_target_condolence_is_not_force_positive():
     result = apply_target_context(
-        'सम्राट चौधरी ने दुख जताया लेकिन लोगों ने इसे ढोंग बताया',
+        'चिराग पासवान ने दुख जताया लेकिन लोगों ने इसे ढोंग बताया',
         Result(sentiment='negative', confidence=.91, reason='Overall negative'), .80,
     )
     assert result.sentiment == 'negative'
 
 
 def test_devanagari_target_detection():
-    text = 'सम्राट चौधरी, बिहार भाजपा और बिहार सरकार'
-    assert detect_targets(text) == ['samrat_choudhary', 'bihar_bjp', 'bihar_government']
-    assert detect_targets('#SamratChaudhary') == ['samrat_choudhary']
-    assert detect_targets('Bihar Bharatiya Janata Party') == ['bihar_bjp']
+    text = 'चिराग पासवान और लोक जनशक्ति पार्टी (रामविलास)'
+    assert detect_targets(text) == ['chirag_paswan', 'lok_janshakti_party_ram_vilas']
+    assert detect_targets('#ChiragPaswan') == ['chirag_paswan']
+    assert detect_targets('Lok Janshakti Party (Ram Vilas)') == ['lok_janshakti_party_ram_vilas']
 
 
 @pytest.mark.asyncio
@@ -225,24 +225,24 @@ async def test_youtube_classifies_title_only_never_description_or_comments():
         assert req.url.params['part'] == 'snippet,statistics,contentDetails'
         return httpx.Response(200, json={'items': [
             {'id': 'abc', 'snippet': {
-                'title': 'Samrat Choudhary meeting',
+                'title': 'Chirag Paswan meeting',
                 'description': 'Full description, not a search excerpt.',
                 'channelTitle': 'News', 'publishedAt': '2026-10-01T00:00:00Z'},
              'contentDetails': {'duration': 'PT45S'},
              'statistics': {'likeCount': '4', 'viewCount': '90', 'commentCount': '99'}},
             {'id': 'description-only', 'snippet': {
                 'title': 'Unrelated daily bulletin',
-                'description': 'Samrat Choudhary appears only here.',
+                'description': 'Chirag Paswan appears only here.',
                 'channelTitle': 'News', 'publishedAt': '2026-10-01T00:00:00Z'},
              'statistics': {}},
         ]})
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         rows = await youtube_posts(
-            client, {'api_key': 'test'}, ['Samrat Choudhary'], now() - timedelta(days=1),
+            client, {'api_key': 'test'}, ['Chirag Paswan'], now() - timedelta(days=1),
         )
     assert paths.count('/youtube/v3/search') == 1 and len(rows) == 1
-    assert rows[0]['content'] == 'Samrat Choudhary meeting'
+    assert rows[0]['content'] == 'Chirag Paswan meeting'
     assert 'description' not in rows[0]
     assert rows[0]['engagement']['comments'] == 0
     assert rows[0]['engagement']['views'] == 90
@@ -266,7 +266,7 @@ async def test_youtube_rotates_to_backup_key_only_after_quota_exhaustion():
             return httpx.Response(200, json={'items': [{'id': {'videoId': 'backup-video'}}]})
         return httpx.Response(200, json={'items': [{
             'id': 'backup-video',
-            'snippet': {'title': 'Bihar BJP update', 'channelTitle': 'News',
+            'snippet': {'title': 'LJP(RV) update', 'channelTitle': 'News',
                         'publishedAt': '2026-10-06T06:00:00Z'},
             'statistics': {}, 'contentDetails': {'duration': 'PT5M'},
         }]})
@@ -274,7 +274,7 @@ async def test_youtube_rotates_to_backup_key_only_after_quota_exhaustion():
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         rows = await youtube_posts(client, {
             'api_key': 'primary', 'backup_api_key': 'backup',
-        }, ['Bihar BJP'], now() - timedelta(days=1))
+        }, ['LJP(RV)'], now() - timedelta(days=1))
 
     assert keys == ['primary', 'backup', 'backup']
     assert len(rows) == 1 and rows[0]['external_id'] == 'backup-video'

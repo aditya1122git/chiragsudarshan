@@ -29,11 +29,11 @@ from reportlab.platypus import (
 )
 
 
-BRAND_ORANGE = colors.HexColor('#F97316')
-BRAND_DARK = colors.HexColor('#C2410C')
-BRAND_PALE = colors.HexColor('#FFF7ED')
+BRAND_PRIMARY = colors.HexColor('#7F00FF')
+BRAND_DARK = colors.HexColor('#5F00BF')
+BRAND_PALE = colors.HexColor('#F8F2FF')
 NAVY = BRAND_DARK
-BLUE = BRAND_ORANGE
+BLUE = BRAND_PRIMARY
 RED = colors.HexColor('#C83E3A')
 GREEN = colors.HexColor('#278D75')
 AMBER = colors.HexColor('#B8751A')
@@ -56,17 +56,17 @@ def _fonts() -> tuple[str, str]:
     regular = FONT_DIR / 'Poppins-Regular.ttf'
     semibold = FONT_DIR / 'Poppins-SemiBold.ttf'
     try:
-        if 'GarudaDrishtiPoppins' not in pdfmetrics.getRegisteredFontNames():
-            pdfmetrics.registerFont(TTFont('GarudaDrishtiPoppins', str(regular)))
-            pdfmetrics.registerFont(TTFont('GarudaDrishtiPoppinsSemiBold', str(semibold)))
-        return 'GarudaDrishtiPoppins', 'GarudaDrishtiPoppinsSemiBold'
+        if 'ChiragSudarshanPoppins' not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont('ChiragSudarshanPoppins', str(regular)))
+            pdfmetrics.registerFont(TTFont('ChiragSudarshanPoppinsSemiBold', str(semibold)))
+        return 'ChiragSudarshanPoppins', 'ChiragSudarshanPoppinsSemiBold'
     except Exception:
         try:
             regular = FONT_DIR / 'NotoSansDevanagari.ttf'
-            if 'GarudaDrishtiSans' not in pdfmetrics.getRegisteredFontNames():
-                pdfmetrics.registerFont(TTFont('GarudaDrishtiSans', str(regular)))
-                pdfmetrics.registerFont(TTFont('GarudaDrishtiSansBold', str(regular)))
-            return 'GarudaDrishtiSans', 'GarudaDrishtiSansBold'
+            if 'ChiragSudarshanSans' not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont('ChiragSudarshanSans', str(regular)))
+                pdfmetrics.registerFont(TTFont('ChiragSudarshanSansBold', str(regular)))
+            return 'ChiragSudarshanSans', 'ChiragSudarshanSansBold'
         except Exception:
             return 'Helvetica', 'Helvetica-Bold'
 
@@ -137,8 +137,8 @@ def build_sentiment_pdf(
         rightMargin=right,
         topMargin=top,
         bottomMargin=bottom,
-        title=f'GarudaDrishti {period.title()} Sentiment Report',
-        author='GarudaDrishti',
+        title=f'ChiragSudarshan {period.title()} Sentiment Report',
+        author='ChiragSudarshan',
         subject=f'Sentiment summary and {sentiment_filter} post evidence',
     )
     frame = Frame(left, bottom, page_w - left - right, page_h - top - bottom, id='report-frame', showBoundary=0)
@@ -149,7 +149,7 @@ def build_sentiment_pdf(
         canvas.rect(0, page_h - 10 * mm, page_w, 10 * mm, fill=1, stroke=0)
         canvas.setFont(bold, 9)
         canvas.setFillColor(WHITE)
-        canvas.drawString(left, page_h - 6.5 * mm, 'GarudaDrishti  |  Political conversation intelligence')
+        canvas.drawString(left, page_h - 6.5 * mm, 'ChiragSudarshan  |  Political conversation intelligence')
         canvas.setStrokeColor(LINE)
         canvas.line(left, 12 * mm, page_w - right, 12 * mm)
         canvas.setFont(regular, 7)
@@ -173,8 +173,8 @@ def build_sentiment_pdf(
 
     filter_label = 'All sentiments' if sentiment_filter == 'all' else sentiment_filter.title()
     hero = Table([[
-        Paragraph('GARUDADRISHTI INTELLIGENCE', ParagraphStyle(
-            name='JNHeroEyebrow', parent=styles['JNSubtitle'], textColor=colors.HexColor('#FFEDD5'),
+        Paragraph('CHIRAGSUDARSHAN INTELLIGENCE', ParagraphStyle(
+            name='JNHeroEyebrow', parent=styles['JNSubtitle'], textColor=colors.HexColor('#F0E0FF'),
             fontName=bold, fontSize=7.5, leading=10, letterSpacing=1.1,
         )),
         Paragraph(filter_label.upper(), ParagraphStyle(
@@ -189,7 +189,7 @@ def build_sentiment_pdf(
     ], [
         Paragraph(
             f'{period.title()} &nbsp;|&nbsp; {_clean(start)} to {_clean(end)} &nbsp;|&nbsp; {escape(timezone_name)}',
-            ParagraphStyle(name='JNHeroMeta', parent=styles['JNSubtitle'], textColor=colors.HexColor('#FFF7ED')),
+            ParagraphStyle(name='JNHeroMeta', parent=styles['JNSubtitle'], textColor=colors.HexColor('#F8F2FF')),
         ),
         '',
     ]], colWidths=[120*mm, 53*mm])
@@ -236,7 +236,7 @@ def build_sentiment_pdf(
         ('BOX', (0, 0), (-1, -1), .5, LINE),
         ('INNERGRID', (0, 0), (-1, -1), .35, LINE),
         ('BACKGROUND', (0, 0), (-1, -1), WHITE),
-        ('LINEABOVE', (0, 0), (0, 0), 2.2, BRAND_ORANGE),
+        ('LINEABOVE', (0, 0), (0, 0), 2.2, BRAND_PRIMARY),
         ('LINEABOVE', (1, 0), (1, 0), 2.2, GREEN),
         ('LINEABOVE', (2, 0), (2, 0), 2.2, RED),
         ('LINEABOVE', (3, 0), (3, 0), 2.2, MUTED),
@@ -302,7 +302,7 @@ def build_sentiment_pdf(
                 int(engagement.get('likes', 0)) + int(engagement.get('comments', 0)) + int(engagement.get('shares', 0))
             ))
             url = _link(post.get('url'))
-            link_text = f'<link href="{url}" color="#EA580C"><u>Open original post</u></link>' if url else 'Original link unavailable'
+            link_text = f'<link href="{url}" color="#6A00D6"><u>Open original post</u></link>' if url else 'Original link unavailable'
             heading = Paragraph(
                 f'<b>#{index}</b>&nbsp;&nbsp; {_clean(post.get("author") or "Unknown author", 100)}',
                 styles['JNBody'],

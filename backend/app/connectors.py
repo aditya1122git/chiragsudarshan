@@ -32,49 +32,39 @@ NEWS_CHANNELS = (
 )
 
 NEWS_SEARCH_QUERIES = (
-    '"Samrat Choudhary" OR "Samrat Chaudhary"',
-    '"Bihar BJP" OR "BJP Bihar"',
-    '"Bihar Government" OR "Bihar Govt"',
-    '"सम्राट चौधरी" OR "बिहार भाजपा" OR "बिहार सरकार"',
+    '"Chirag Paswan" OR "चिराग पासवान"',
+    '"Lok Janshakti Party (Ram Vilas)" OR "LJP(RV)" OR "LJPRV"',
+    '"लोक जनशक्ति पार्टी (रामविलास)" OR "लोक जनशक्ति पार्टी रामविलास" OR "लोजपा रामविलास"',
 )
 
 YOUTUBE_SEARCH_TERMS = (
-    'Samrat Choudhary',
-    'Bihar BJP',
-    'Bihar Government',
-    'NDA Bihar',
+    'Chirag Paswan',
+    'Lok Janshakti Party Ram Vilas',
+    'चिराग पासवान लोक जनशक्ति पार्टी',
 )
 
 X_SEARCH_GROUPS = (
-    (('Samrat Choudhary', 'Samrat Chaudhary', '#SamratChoudhary'),
-     ('Samrat Choudhary', 'Samrat Chaudhary', 'CM Samrat',
-      '#SamratChoudhary', '#SamratChaudhary', '#CMSamrat')),
-    (('सम्राट चौधरी',),
-     ('सम्राट चौधरी', 'सम्राट', '@samrat4bjp', 'from:samrat4bjp')),
-    (('Bihar BJP', 'BJP Bihar', 'Bharatiya Janata Party Bihar',
-      'बिहार भाजपा', 'भाजपा बिहार', '#BiharBJP', '#BJP4Bihar'),
-     ('Bihar BJP', 'BJP Bihar', 'बिहार भाजपा', 'भाजपा बिहार',
-      '#BiharBJP', '#BJP4Bihar', '@BJP4Bihar', 'from:BJP4Bihar')),
-    (('Bihar Government', 'Bihar Govt', 'Government of Bihar', 'बिहार सरकार',
-      '#BiharGovt', '#BiharGovernment'),
-     ('Bihar Government', 'Bihar Govt', 'Government of Bihar', 'बिहार सरकार',
-      '#BiharGovt', '#BiharGovernment')),
-    (('NDA Bihar', '#NDA', '#NDAAlliance', '#NDABihar', '#BJPNDA',
-      '#भाजपाएनडीए', '#एनडीए'),
-     ('NDA Bihar', '#NDAAlliance', '#NDABihar', '#BJPNDA', '#भाजपाएनडीए', '#एनडीए')),
+    (('Chirag Paswan', 'चिराग पासवान', '#ChiragPaswan', '#चिरागपासवान'),
+     ('Chirag Paswan', 'चिराग पासवान', '#ChiragPaswan', '#चिरागपासवान',
+      '@iChiragPaswan', 'from:iChiragPaswan')),
+    (('Lok Janshakti Party (Ram Vilas)', 'Lok Janshakti Party (Ramvilas)',
+      'Lok Janshakti Party Ram Vilas', 'LJP Ram Vilas', 'LJP(RV)', 'LJP RV',
+      'LJPRV', 'लोक जनशक्ति पार्टी (रामविलास)', 'लोक जनशक्ति पार्टी रामविलास',
+      'लोजपा', '#LJP', '#LJPRV', '#LJPRamVilas', '#LokJanshaktiParty'),
+     ('Lok Janshakti Party (Ram Vilas)', 'LJP(RV)', 'LJPRV',
+      'लोक जनशक्ति पार्टी (रामविलास)', 'लोजपा रामविलास',
+      '#LJPRV', '#LJPRamVilas', '#LokJanshaktiParty', '#लोकजनशक्तिपार्टी',
+      '@LJP4India', 'from:LJP4India')),
 )
-X_MATCH_ALIASES = ('CM Samrat', '#CMSamrat', '@samrat4bjp', '@BJP4Bihar', 'सम्राट')
-X_OFFICIAL_HANDLES = {'samrat4bjp', 'bjp4bihar'}
+X_MATCH_ALIASES = ('चिराग पासवान', '#ChiragPaswan', '#LJPRV', '#LJPRamVilas',
+                   '@iChiragPaswan', '@LJP4India', 'लोजपा रामविलास')
+X_OFFICIAL_HANDLES = {'ichiragpaswan', 'ljp4india', 'officeofchirag'}
 
 REDDIT_SEARCH_GROUPS = (
-    (('Samrat Choudhary', 'Samrat Chaudhary', 'सम्राट चौधरी'),
-     'Samrat Choudhary'),
-    (('Bihar BJP', 'BJP Bihar', 'Bharatiya Janata Party Bihar', 'बिहार भाजपा', 'भाजपा बिहार'),
-     'Bihar BJP'),
-    (('Bihar Government', 'Bihar Govt', 'Government of Bihar', 'बिहार सरकार'),
-     'Bihar Government'),
-    (('NDA', 'NDA Bihar', 'BJP NDA', 'एनडीए'),
-     'NDA Bihar'),
+    (('Chirag Paswan', 'चिराग पासवान', '#ChiragPaswan'), 'Chirag Paswan'),
+    (('Lok Janshakti Party (Ram Vilas)', 'Lok Janshakti Party Ram Vilas',
+      'LJP Ram Vilas', 'LJP(RV)', 'LJPRV', 'लोक जनशक्ति पार्टी (रामविलास)'),
+     'Lok Janshakti Party Ram Vilas'),
 )
 
 NEWS_SOURCE_ALIASES = {
@@ -166,6 +156,19 @@ async def request(client, method, url, **kwargs):
 
 
 def matches(text, keywords):
+    # Do not confuse Pashupati Paras's Rashtriya Lok Janshakti Party (RLJP)
+    # with Chirag Paswan's Lok Janshakti Party (Ram Vilas).
+    wrong_faction = re.search(
+        r'\b(?:rashtriya\s+lok\s+janshakti\s+party|rljp)\b|राष्ट्रीय\s+लोक\s+जनशक्ति\s+पार्टी',
+        text, re.I,
+    )
+    explicit_target = re.search(
+        r'chirag\s+paswan|चिराग\s+पासवान|lok\s+janshakti\s+party\s*\(?ram\s*vilas\)?|'
+        r'\bljp\s*\(?\s*rv\s*\)?\b|\bljprv\b|लोक\s+जनशक्ति\s+पार्टी\s*\(?रामविलास\)?|लोजपा\s*\(?रामविलास\)?',
+        text, re.I,
+    )
+    if wrong_faction and not explicit_target:
+        return False
     return any(re.search(r'(?<!\w)' + re.escape(k) + r'(?!\w)', text, re.I) for k in keywords)
 
 

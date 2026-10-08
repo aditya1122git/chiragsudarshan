@@ -30,7 +30,7 @@ def test_pdf_lists_filtered_posts_by_platform_with_clickable_links_and_poppins()
         {
             'platform': 'reddit',
             'author': 'Long Form Redditor',
-            'content': 'A very long Reddit discussion about Bihar BJP. ' * 300,
+            'content': 'A very long Reddit discussion about Lok Janshakti Party (Ram Vilas). ' * 300,
             'url': 'https://reddit.com/r/bihar/comments/long-post',
             'published_at': datetime(2026, 10, 3, 10, 30, tzinfo=timezone.utc),
             'engagement_score': 5,
@@ -64,12 +64,12 @@ def test_pdf_lists_filtered_posts_by_platform_with_clickable_links_and_poppins()
     assert 'Facebook negative posts' in text
     assert 'Youtube negative posts' in text
     assert 'Reddit negative posts' in text
-    assert 'GarudaDrishti' in text
+    assert 'ChiragSudarshan' in text
     assert 'JanNetra' not in text
     assert 'Data source status' not in text
     assert 'Apify Actor' not in text
-    assert reader.metadata.title == 'GarudaDrishti Daily Sentiment Report'
-    assert reader.metadata.author == 'GarudaDrishti'
+    assert reader.metadata.title == 'ChiragSudarshan Daily Sentiment Report'
+    assert reader.metadata.author == 'ChiragSudarshan'
     assert 'A critical Facebook post' in text
     assert 'A critical YouTube title' in text
     assert links == {post['url'] for post in posts}

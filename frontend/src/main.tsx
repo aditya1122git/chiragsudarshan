@@ -273,11 +273,11 @@ function App() {
           <div className="login-intro">
             <div className="login-logo">
               <Eye />
-              <span>GarudaDrishti</span>
+              <span>ChiragSudarshan</span>
             </div>
             <p>Political conversations, clearly understood.</p>
           </div>
-          <h1>Log in to GarudaDrishti</h1>
+          <h1>Log in to ChiragSudarshan</h1>
           <input className="form-control"
             aria-label="Email address"
             placeholder="Email address"
@@ -425,7 +425,7 @@ function Workspace({
             onClick={() => navigate("overview")}
           >
             <span className="navbar-logo"><Eye size={22} /></span>
-            <strong>GarudaDrishti</strong>
+            <strong>ChiragSudarshan</strong>
           </button>
           <button
             className="mobile-toggle"
@@ -1002,7 +1002,7 @@ function Workspace({
           )}
           <footer>
             <span>
-              <Eye size={14} /> GarudaDrishti ·{" "}
+              <Eye size={14} /> ChiragSudarshan ·{" "}
               Public conversation monitoring
             </span>
             <span>
@@ -1437,7 +1437,7 @@ function ReportModal({ close }: { close: () => void }) {
             const url = URL.createObjectURL(await response.blob());
             const a = document.createElement("a");
             a.href = url;
-            a.download = `garudadrishti-${period}-${sentiment}.${format}`;
+            a.download = `chiragsudarshan-${period}-${sentiment}.${format}`;
             a.click();
             setTimeout(() => URL.revokeObjectURL(url), 1000);
             close();

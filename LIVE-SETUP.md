@@ -29,8 +29,8 @@ Configure the database, administrator and source credentials, then restart. Test
 
 Hostinger Docker Manager pulls container images during deployment; it does not build the repository-relative `backend` and `frontend` contexts in this workflow. The `Publish container images` GitHub Actions workflow builds both Dockerfiles on every push to `main` and publishes:
 
-- `ghcr.io/aditya1122git/garudadrishti-api:latest`
-- `ghcr.io/aditya1122git/garudadrishti-frontend:latest`
+- `ghcr.io/aditya1122git/chiragsudarshan-api:latest`
+- `ghcr.io/aditya1122git/chiragsudarshan-frontend:latest`
 
 Push the deployment changes first and wait for that workflow to finish successfully before clicking Deploy in Hostinger. The Compose file retains `build:` for local use and adds the published `image:` values for Hostinger. If either GHCR package is private, make it public in **GitHub -> Packages -> Package settings -> Change visibility**, or configure Hostinger's private-registry credentials. Public GHCR packages support anonymous pulls.
 

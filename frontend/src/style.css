@@ -7,7 +7,7 @@
   --ink: #152231;
   --muted: #6c7887;
   --line: #e3e8ed;
-  --orange: #f97316;
+  --orange: #7f00ff;
 }
 * {
   box-sizing: border-box;
@@ -53,7 +53,7 @@ button:disabled {
 }
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid #fb923c;
+  outline: 3px solid #a64dff;
   outline-offset: 3px;
 }
 input,
@@ -69,7 +69,7 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid #ea580c;
+  outline: 2px solid #6a00d6;
   outline-offset: 1px;
 }
 label {
@@ -114,19 +114,19 @@ small {
   font-size: 12px;
 }
 a {
-  color: #c2410c;
+  color: #5f00bf;
   text-decoration: none;
 }
 a:hover {
   text-decoration: underline;
 }
 .primary {
-  background: #f97316;
-  border-color: #f97316;
+  background: #7f00ff;
+  border-color: #7f00ff;
   color: #fff;
 }
 .primary:hover {
-  background: #c2410c;
+  background: #5f00bf;
 }
 .shell {
   display: flex;
@@ -412,7 +412,7 @@ main {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #f97316;
+  background: #7f00ff;
 }
 .classification-progress.complete .classification-progress-track i {
   width: 100%;
@@ -450,7 +450,7 @@ main {
   font-weight: 600;
 }
 .sync-schedule-copy strong {
-  color: #c2410c;
+  color: #5f00bf;
   font-size: 11px;
   white-space: nowrap;
 }
@@ -466,7 +466,7 @@ main {
   height: 100%;
   min-width: 2px;
   border-radius: inherit;
-  background: #f97316;
+  background: #7f00ff;
   transition: width 1s linear;
 }
 .sync-schedule-item:nth-child(2) .sync-schedule-track i {
@@ -1861,11 +1861,11 @@ dialog::backdrop {
   grid-column: 1 / -1;
 }
 
-/* Warm orange GarudaDrishti shell */
+/* ChiragSudarshan purple brand shell */
 :root {
-  --brand-orange: #f97316;
-  --brand-orange-dark: #c2410c;
-  --brand-bg: #fff7ed;
+  --brand-orange: #7f00ff;
+  --brand-orange-dark: #5f00bf;
+  --brand-bg: #f8f2ff;
   --fb-text: #1c1e21;
   --fb-muted: #65676b;
   --line: #dfe3e8;
@@ -2010,7 +2010,7 @@ body {
 .navbar-account .avatar {
   width: 36px;
   height: 36px;
-  background: #ffedd5;
+  background: #f0e0ff;
   color: var(--brand-orange);
   font-weight: 700;
 }
@@ -2083,7 +2083,7 @@ body {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #ffedd5;
+  background: #f0e0ff;
   color: var(--brand-orange);
   font-size: 25px;
   font-weight: 700;
@@ -2149,7 +2149,7 @@ body {
 .profile-confirmation-box {
   margin-top: 24px;
   padding: 22px;
-  border: 1px solid #fed7aa;
+  border: 1px solid #d8b4fe;
   border-radius: 8px;
   background: #fffaf5;
 }
@@ -2296,7 +2296,7 @@ body {
 .login-form input:focus {
   border-color: var(--brand-orange);
   outline: 1px solid var(--brand-orange);
-  box-shadow: 0 0 0 2px #ffedd5;
+  box-shadow: 0 0 0 2px #f0e0ff;
 }
 .login-form .primary {
   width: 100%;
@@ -2383,7 +2383,7 @@ body {
     display: inline;
   }
   .app-navbar nav button.active {
-    background: #ffedd5;
+    background: #f0e0ff;
   }
   .app-navbar nav button.active::after {
     display: none;
@@ -2436,7 +2436,7 @@ body {
   }
 }
 
-.btn.primary { --bs-btn-bg: #f97316; --bs-btn-border-color: #f97316; --bs-btn-hover-bg: #c2410c; --bs-btn-hover-border-color: #c2410c; color: white; }
+.btn.primary { --bs-btn-bg: #7f00ff; --bs-btn-border-color: #7f00ff; --bs-btn-hover-bg: #5f00bf; --bs-btn-hover-border-color: #5f00bf; color: white; }
 .form-control, .form-select { font-size: inherit; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
@@ -2477,7 +2477,7 @@ body {
 .login .login-logo {
   justify-content: center;
   gap: 11px;
-  font-size: 42px;
+  font-size: 36px;
   letter-spacing: -1.8px;
 }
 .login .login-logo svg {
@@ -2556,7 +2556,7 @@ body {
     padding: 30px 22px 27px;
   }
   .login .login-logo {
-    font-size: 34px;
+    font-size: 30px;
   }
   .login .login-logo svg {
     width: 34px;
@@ -2642,7 +2642,7 @@ body {
   width: 44px;
   height: 44px;
   margin-bottom: 17px;
-  border: 4px solid #ffedd5;
+  border: 4px solid #f0e0ff;
   border-top-color: var(--brand-orange);
   border-radius: 50%;
   animation: global-loader-spin 0.8s linear infinite;

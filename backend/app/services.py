@@ -12,20 +12,19 @@ from .models import now
 from .connectors import apify_posts, google_news_posts, youtube_posts, request
 from .sentiment import classifier
 
-POST_SCOPE = {'$or': [{'platform': {'$ne': 'youtube'}}, {'demo': True}, {'content_scope': 'youtube-title-only-v2'}]}
-
 PLATFORMS = ['facebook', 'instagram', 'x', 'youtube', 'news', 'reddit']
-TRACKING_SCOPE_VERSION = 'samrat-bihar-bjp-government-v2'
+TRACKING_SCOPE_VERSION = 'chirag-paswan-ljp-rv-v1'
+POST_SCOPE = {'tracking_scope_version': TRACKING_SCOPE_VERSION}
 DEFAULT_KEYWORD_VARIANTS = [
-    'Samrat Chaudhary', 'BJP Bihar', 'Bihar Bharatiya Janata Party',
-    'Government of Bihar', '#SamratChoudhary', '#BJP4Bihar', '#BiharGovernment',
+    'Lok Janshakti Party', 'Lok Janshakti Party Ram Vilas', 'LJP Ram Vilas',
+    'LJP(RV)', 'LJP RV', 'LJPRV', 'लोक जनशक्ति पार्टी', 'लोजपा',
+    '#ChiragPaswan', '#LokJanshaktiParty', '#LJPRV', '#चिरागपासवान',
 ]
 KEYWORDS = [
-    'Samrat Choudhary', 'Bihar BJP', 'Bharatiya Janata Party Bihar',
-    'Bihar Government', 'Bihar Govt', 'सम्राट चौधरी', 'बिहार भाजपा', 'भाजपा बिहार',
-    'बिहार सरकार', '#BiharBJP', '#SamratChaudhary', '#BiharGovt',
-    'NDA', 'NDA Bihar', 'BJP NDA', 'एनडीए',
-    '#NDA', '#NDAAlliance', '#NDABihar', '#BJPNDA', '#भाजपाएनडीए', '#एनडीए',
+    'Chirag Paswan', 'चिराग पासवान',
+    'Lok Janshakti Party (Ram Vilas)', 'Lok Janshakti Party (Ramvilas)',
+    'लोक जनशक्ति पार्टी (रामविलास)', 'लोक जनशक्ति पार्टी रामविलास',
+    '#LJP', '#LJPRamVilas', '#लोकजनशक्तिपार्टी', '#लोजपा',
 ]
 def today():
     return now().astimezone(ZoneInfo(config().reporting_timezone)).date().isoformat()
@@ -100,11 +99,13 @@ async def rollup(db):
     rows += [dict(date=d, platform='overall', **v) for d, v in overall.items()]
     for row in rows:
         row['negativity_index'] = round(row['negative_count'] / row['total_count'] * 100, 1) if row['total_count'] else 0
-        await db.daily_aggregates.update_one({'date': row['date'], 'platform': row['platform']}, {'$set': {**row, 'schema_version': 1, 'content_scope': 'youtube-title-only-v2'}}, upsert=True)
+        await db.daily_aggregates.update_one({'date': row['date'], 'platform': row['platform']}, {'$set': {**row, 'schema_version': 1, 'content_scope': 'youtube-title-only-v2', 'tracking_scope_version': TRACKING_SCOPE_VERSION}}, upsert=True)
 
 async def create_alert(db, day):
     prefs = await settings(db)
-    row = await db.daily_aggregates.find_one({'date': day, 'platform': 'overall'})
+    row = await db.daily_aggregates.find_one({
+        'date': day, 'platform': 'overall', 'tracking_scope_version': TRACKING_SCOPE_VERSION,
+    })
     if not row or row['negative_count'] <= prefs['threshold']:
         return
     start, end = bounds(day)
@@ -113,12 +114,16 @@ async def create_alert(db, day):
                               'platform': {'$in': connected}, 'demo': config().seed_mock_data}).sort('engagement_score', -1).limit(5).to_list(5)
     for p in top:
         p['_id'] = str(p['_id'])
-    breakdown = {r['platform']: r['negative_count'] async for r in db.daily_aggregates.find({'date': day, 'platform': {'$in': connected}})}
+    breakdown = {r['platform']: r['negative_count'] async for r in db.daily_aggregates.find({
+        'date': day, 'platform': {'$in': connected},
+        'tracking_scope_version': TRACKING_SCOPE_VERSION,
+    })}
     try:
         await db.alerts.update_one({'date': day}, {'$setOnInsert': dict(schema_version=1, date=day, threshold=prefs['threshold'],
                                   triggered_at=now(), notified_channels=[], resolved=False),
                                   '$set': dict(negative_count=row['negative_count'], top_negative_posts=top, platform_breakdown=breakdown,
-                                               content_scope='youtube-title-only-v2')}, upsert=True)
+                                               content_scope='youtube-title-only-v2',
+                                               tracking_scope_version=TRACKING_SCOPE_VERSION)}, upsert=True)
     except DuplicateKeyError:
         pass
 
@@ -173,7 +178,7 @@ async def notify_negative_posts(db, client):
         content = ' '.join(str(post_row.get('content') or '').split())[:800]
         platform = str(post_row.get('platform') or 'unknown')
         link_label = _telegram_link_label(platform)
-        message = (f'<b>🚨 GarudaDrishti negative post</b>\n\n'
+        message = (f'<b>🚨 ChiragSudarshan negative post</b>\n\n'
                    f'<b>Platform:</b> {html_escape(platform.title())}\n'
                    f'<b>Author:</b> {html_escape(str(post_row.get("author") or "Unknown"))}\n'
                    f'<b>Confidence:</b> {confidence}%\n\n'
@@ -251,6 +256,7 @@ async def sync(db, client, platforms=None):
                                 raise RuntimeError('This source must be configured with Apify')
                             rows = await apify_posts(client, p, secret, keywords, since)
                         for row in rows:
+                            row['tracking_scope_version'] = TRACKING_SCOPE_VERSION
                             if p == 'youtube':
                                 # Upgrade legacy search snippets to full video content once.
                                 await db.posts.update_one({'platform': p, 'external_id': row['external_id'],
@@ -334,12 +340,12 @@ async def seed(db):
         return
     rng = random.Random(20260928)
     texts = {
-        'positive': ['बिहार सरकार की शिक्षा पहल पर अच्छी चर्चा हुई।', 'Samrat Choudhary is asking the right questions about jobs in Bihar.', 'Bihar BJP ki local meeting mein achhi discussion hui.'],
-        'negative': ['Bihar Government needs a clearer jobs plan. Promises alone are not enough.', 'सम्राट चौधरी की बातों में जमीन पर काम की स्पष्ट योजना कहाँ है?', 'Bihar BJP ki rally mein sawaal zyada, jawaab kam.'],
-        'neutral': ['Samrat Choudhary addressed a public meeting today. Full discussion to follow.', 'बिहार भाजपा की अगली बैठक रविवार को होगी।', 'Bihar Government: a summary of today’s education policy discussion.']}
+        'positive': ['चिराग पासवान की युवा रोजगार पहल पर अच्छी चर्चा हुई।', 'Chirag Paswan is asking the right questions about jobs in Bihar.', 'Lok Janshakti Party (Ram Vilas) ki local meeting mein achhi discussion hui.'],
+        'negative': ['Lok Janshakti Party (Ram Vilas) needs a clearer jobs plan.', 'चिराग पासवान की बातों में जमीन पर काम की स्पष्ट योजना कहाँ है?', 'LJP(RV) ki rally mein sawaal zyada, jawaab kam.'],
+        'neutral': ['Chirag Paswan addressed a public meeting today.', 'लोक जनशक्ति पार्टी (रामविलास) की अगली बैठक रविवार को होगी।', 'LJP(RV): a summary of today’s policy discussion.']}
     texts['mixed'] = [
-        'Samrat Choudhary raised strong education points, but his jobs plan remains weak.',
-        'Bihar Government praised for outreach but criticised for slow execution.',
+        'Chirag Paswan raised strong education points, but his jobs plan remains weak.',
+        'Lok Janshakti Party (Ram Vilas) praised for outreach but criticised for slow execution.',
     ]
     docs = []
     day0 = datetime.fromisoformat(today()).date()
@@ -355,5 +361,6 @@ async def seed(db):
                                  author=f'Sample analyst {i % 80 + 1:02d}', content=rng.choice(texts[label]), url='',
                                  published_at=start + timedelta(seconds=rng.randrange(available_seconds)), engagement=eng,
                                  engagement_score=eng['likes'] + eng['comments'] + eng['shares'], ingested_at=now(), demo=True,
+                                 tracking_scope_version=TRACKING_SCOPE_VERSION,
                                  sentiment=dict(label=label, confidence=round(rng.uniform(.59, .98), 2), reason='Synthetic demonstration label', model_used='demo-fixture', classified_at=now())))
     await db.posts.insert_many(docs)

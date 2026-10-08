@@ -23,7 +23,7 @@ from .config import (config, APIFY_SYNC_INTERVAL_HOURS, DEFAULT_AUTOMATION_START
 from .connectors import _author_name
 from .sentiment import classifier_status
 from .models import DOCUMENTS, now, Platform, Label
-from .services import POST_SCOPE, KEYWORDS, DEFAULT_KEYWORD_VARIANTS, PLATFORMS, today, bounds, settings, encrypt, audit, statuses, seed, sync, scheduled_sync, sync_running
+from .services import POST_SCOPE, KEYWORDS, DEFAULT_KEYWORD_VARIANTS, TRACKING_SCOPE_VERSION, PLATFORMS, today, bounds, settings, encrypt, audit, statuses, seed, sync, scheduled_sync, sync_running
 from .reporting import build_sentiment_pdf
 
 logger = logging.getLogger(__name__)
@@ -117,6 +117,14 @@ async def lifespan(app):
                                            hashed_password=hashed.decode(), role='admin'))
     elif not await db.users.find_one({}):
         raise RuntimeError('No users exist. Set BOOTSTRAP_EMAIL and BOOTSTRAP_PASSWORD for the first startup only.')
+    # Retire keywords from the previous campaign in existing databases.
+    await db.tracked_keywords.update_many({
+        'keyword': {'$regex': (
+            r'samrat|choudhary|chaudhary|\bbjp\b|bharatiya\s+janata|'
+            r'bihar\s+(?:government|govt)|government\s+of\s+bihar|\bnda\b|'
+            r'सम्राट|चौधरी|भाजपा|बिहार\s+सरकार|एनडीए'
+        ), '$options': 'i'},
+    }, {'$set': {'is_active': False}})
     for term in dict.fromkeys(KEYWORDS + DEFAULT_KEYWORD_VARIANTS):
         await db.tracked_keywords.update_one({'keyword': term}, {'$setOnInsert': {'keyword': term, 'is_active': True}}, upsert=True)
     await db.settings.update_one({'_id': 'main'}, {
@@ -290,7 +298,7 @@ async def overview(platform: Platform | None = None, user=Depends(current_user))
     sources = await statuses(db())
     usable = [s['platform'] for s in sources if s['status'] != 'disconnected']
     selected = [platform] if platform in usable else usable if platform is None else []
-    rows = await db().daily_aggregates.find({'content_scope': 'youtube-title-only-v2', 'date': {'$gte': (date.fromisoformat(today()) - timedelta(days=29)).isoformat()},
+    rows = await db().daily_aggregates.find({'content_scope': 'youtube-title-only-v2', 'tracking_scope_version': TRACKING_SCOPE_VERSION, 'date': {'$gte': (date.fromisoformat(today()) - timedelta(days=29)).isoformat()},
                                           'platform': {'$in': selected}}, {'_id': 0}).to_list(None)
     grouped = {}
     for r in rows:
@@ -311,7 +319,7 @@ async def overview(platform: Platform | None = None, user=Depends(current_user))
         schedule=automation_schedule(),
         classifier=classifier_status(),
         partial=pending > 0 or any(s['status'] in ['unavailable', 'pending'] for s in sources if s['platform'] in selected),
-        alerts=await db().alerts.find({'resolved': False, 'content_scope': 'youtube-title-only-v2'}).sort('date', -1).limit(30).to_list(30)))
+        alerts=await db().alerts.find({'resolved': False, 'content_scope': 'youtube-title-only-v2', 'tracking_scope_version': TRACKING_SCOPE_VERSION}).sort('date', -1).limit(30).to_list(30)))
 
 @app.get('/api/posts')
 async def posts(q: str = Query('', max_length=200), platform: Platform | None = None, sentiment: Label | None = None,
@@ -471,7 +479,7 @@ async def export(period: Literal['daily', 'weekly', 'monthly'] = 'daily', format
     start = (date.fromisoformat(end_day) - timedelta(days=count - 1)).isoformat()
     source_rows = await statuses(db())
     connected = [s['platform'] for s in source_rows if s['status'] != 'disconnected']
-    rows = await db().daily_aggregates.find({'content_scope': 'youtube-title-only-v2', 'date': {'$gte': start, '$lte': today()}, 'platform': {'$in': connected}}, {'_id': 0}).sort([('date', 1), ('platform', 1)]).to_list(None)
+    rows = await db().daily_aggregates.find({'content_scope': 'youtube-title-only-v2', 'tracking_scope_version': TRACKING_SCOPE_VERSION, 'date': {'$gte': start, '$lte': today()}, 'platform': {'$in': connected}}, {'_id': 0}).sort([('date', 1), ('platform', 1)]).to_list(None)
     fields = ['date', 'platform', 'positive_count', 'negative_count', 'neutral_count', 'mixed_count', 'total_count', 'negativity_index']
     source_status = '; '.join(f'{s["platform"]}: {s["source"]}/{s["status"]}' for s in source_rows)
     if format == 'csv':
@@ -516,4 +524,4 @@ async def export(period: Literal['daily', 'weekly', 'monthly'] = 'daily', format
         )
         content = stream.getvalue(); mime = 'application/pdf'
     await audit(db(), user, 'export.' + format, {'period': period, 'sentiment': sentiment})
-    return Response(content, media_type=mime, headers={'Content-Disposition': f'attachment; filename="garudadrishti-{period}-{sentiment}-{today()}.{format}"'})
+    return Response(content, media_type=mime, headers={'Content-Disposition': f'attachment; filename="chiragsudarshan-{period}-{sentiment}-{today()}.{format}"'})

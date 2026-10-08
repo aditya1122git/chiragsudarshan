@@ -11,7 +11,8 @@ async def test_local_classifier_only_processes_pending_live_posts(monkeypatch, f
     db = AsyncMongoMockClient(tz_aware=True).test
     await db.posts.insert_many([
         {'platform': 'x', 'external_id': 'pending', 'sentiment': None, 'demo': False,
-         'content': 'A new post', 'published_at': now()},
+         'content': 'A new post', 'published_at': now(),
+         'tracking_scope_version': services.TRACKING_SCOPE_VERSION},
         {'external_id': 'classified', 'sentiment': {'label': 'positive'}, 'demo': False, 'content': 'Old post'},
         {'external_id': 'demo', 'sentiment': None, 'demo': True, 'content': 'Synthetic post'},
     ])
@@ -50,6 +51,7 @@ async def test_completed_post_is_not_classified_again_on_later_sync(monkeypatch)
     await db.posts.insert_one({
         'platform': 'x', 'external_id': 'once', 'sentiment': None, 'demo': False,
         'content': 'Only classify this once', 'published_at': now(),
+        'tracking_scope_version': services.TRACKING_SCOPE_VERSION,
     })
 
     class Settings:
@@ -93,6 +95,7 @@ async def test_legacy_negative_is_reverified_and_gemini_label_replaces_it(monkey
         'platform': 'x', 'external_id': 'legacy-negative', 'demo': False,
         'content': 'Negative event words but favorable target context',
         'published_at': now(), 'sentiment_schema_version': 6,
+        'tracking_scope_version': services.TRACKING_SCOPE_VERSION,
         'sentiment': {'label': 'negative', 'confidence': .96},
         'telegram_notification': {'status': 'pending'},
     })
@@ -136,6 +139,7 @@ async def test_unverified_legacy_negative_is_excluded_until_gemini_recovers(monk
     await db.posts.insert_one({
         'platform': 'x', 'external_id': 'unverified-negative', 'demo': False,
         'content': 'Needs Gemini confirmation', 'published_at': now(),
+        'tracking_scope_version': services.TRACKING_SCOPE_VERSION,
         'sentiment_schema_version': 6,
         'sentiment': {'label': 'negative', 'confidence': .97},
         'telegram_notification': {'status': 'pending'},
